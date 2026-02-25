@@ -11,6 +11,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="ScooterFlow API")
 
+# Mensaje de root
 @app.get("/")
 def root():
     return {"msg": "API funcionando"}
@@ -23,6 +24,10 @@ def root():
 @app.get("/zones/")
 def get_zones(db: Session = Depends(get_db)):
     return crud.get_zones(db)
+
+@app.get("/zones/{id}")
+def get_zones_id(db: Session = Depends(get_db), id: int = -1):
+    return crud.get_zones_id(db=db, id=id)
 
 '''
     Patinetes
