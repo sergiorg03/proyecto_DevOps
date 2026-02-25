@@ -8,6 +8,8 @@ from app.database import Base
 from app.main import app
 from app.deps import get_db
 
+from app.models import Zone, Scooter, ScooterStatus
+
 # Use in-memory SQLite for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
@@ -23,6 +25,16 @@ def session():
     # Create the database tables
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
+    
+    # Seed data for tests
+    centro = Zone(id=1, nombre="Centro Histórico", codigo_postal=28001, limite_velocidad=20)
+    db.add(centro)
+    db.commit()
+    
+    scooter = Scooter(id=1, numero_serie="S001", modelo="Xiaomi M365", bateria=85, estado=ScooterStatus.disponible, zona_id=centro.id)
+    db.add(scooter)
+    db.commit()
+    
     try:
         yield db
     finally:
