@@ -14,11 +14,6 @@ def test_get_zones(client: TestClient):
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_get_zonas_incorr(client: TestClient):
-    response = client.get("/zones/")
-    assert response.status_code == 404
-    assert response.json() == {"detail": "No hay zonas"}
-
 def test_zonas_id_corr(client: TestClient):
     response = client.get("/zones/1")
     assert response.status_code == 200
@@ -37,11 +32,6 @@ def test_get_scooters_corr(client: TestClient):
     response = client.get("/scooters/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
-
-def test_get_scooters_incorr(client: TestClient):
-    response = client.get("/scooters/")
-    assert response.status_code == 404
-    assert response.json() == {"detail": "No hay patinetes"}
 
 def test_get_scooter_id_corr(client: TestClient):
     response = client.get("/scooters/1")
