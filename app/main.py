@@ -35,3 +35,7 @@ def get_zones_id(db: Session = Depends(get_db), id: int = -1):
 @app.get("/scooters/")
 def get_scooters(db: Session = Depends(get_db)):
     return crud.get_scooters(db)
+
+@app.get("/scooters/{id}")
+def get_scooters_id(db: Session = Depends(get_db), id: int = -1):
+    return crud.get_scooters_id(db=db, id=id)

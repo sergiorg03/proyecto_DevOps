@@ -5,6 +5,13 @@ from . import models
 from datetime import date
 
 '''
+    TODO: 
+        - COMPROBAR DATOS INEXISTENTES.
+
+'''
+
+
+'''
     Zones
 '''
 def get_zones(db: Session):
@@ -23,4 +30,13 @@ def get_zones_id(db: Session, id: int):
     Scooters
 '''
 def get_scooters(db: Session):
+    '''
+        Función que obtiene todos los patinetes existentes en la base de datos.
+    '''
     return db.query(models.Scooter).all()
+
+def get_scooters_id(db: Session, id: int):
+    '''
+        Función que obtiene el patinete con el id indicado.
+    '''
+    return db.query(models.Scooter).filter(models.Scooter.id == id).first()
