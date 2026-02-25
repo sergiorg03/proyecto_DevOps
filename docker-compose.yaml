@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: scooterflow_db
+    restart: always
+    environment:
+      POSTGRES_USER: scooteruser
+      POSTGRES_PASSWORD: scooterpassword
+      POSTGRES_DB: scooterflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: scooterflow_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://scooteruser:scooterpassword@db:5432/scooterflow
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
