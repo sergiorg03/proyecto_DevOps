@@ -51,5 +51,8 @@ jobs:
           sleep 2
         done
 
+    - name: Run migrations
+      run: PYTHONPATH=. alembic upgrade head
+
     - name: Run tests
       run: PYTHONPATH=. pytest

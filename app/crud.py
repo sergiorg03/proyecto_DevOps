@@ -4,12 +4,6 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import date
 
-'''
-    TODO: 
-        - COMPROBAR DATOS INEXISTENTES.
-
-'''
-
 ESTADOS = ["disponible", "en_uso", "mantenimiento", "sin_bateria"]
 
 '''
