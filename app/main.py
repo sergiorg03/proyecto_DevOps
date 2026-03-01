@@ -7,11 +7,7 @@ from . import schemas, crud
 from .deps import get_db
 from .database import Base, engine
 
-# Evitamos que la app falle si ocurre un error a la hora de crearse las tablas.
-try:
-    Base.metadata.create_all(bind=engine)
-except Exception as e:
-    print(f"Error: {e}")
+# Las tablas se gestionarán a través de migraciones con Alembic.
 
 app = FastAPI(title="ScooterFlow API")
 

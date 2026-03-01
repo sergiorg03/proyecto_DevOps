@@ -3,8 +3,7 @@ from app.database import SessionLocal, engine, Base
 from app.models import Zone, Scooter, ScooterStatus
 
 def seed_data():
-    # Crear las tablas si no existen
-    Base.metadata.create_all(bind=engine)
+    # Las tablas se gestionan mediante Alembic
     
     db: Session = SessionLocal()
     try:
