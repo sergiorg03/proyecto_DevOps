@@ -1,0 +1,36 @@
+from pydantic import BaseModel, ConfigDict
+from typing import List, Optional
+from enum import Enum
+
+class ScooterStatus(str, Enum):
+    disponible = "disponible"
+    en_uso = "en_uso"
+    mantenimiento = "mantenimiento"
+    sin_bateria = "sin_bateria"
+
+class ScooterBase(BaseModel):
+    numero_serie: str
+    modelo: str
+    bateria: int = 100
+    estado: ScooterStatus = ScooterStatus.disponible
+    zona_id: Optional[int] = None
+
+class ScooterCreate(ScooterBase):
+    pass
+
+class ScooterResponse(ScooterBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class ZoneBase(BaseModel):
+    nombre: str = "Sin nombre"
+    codigo_postal: int
+    limite_velocidad: int = 0
+
+class ZoneCreate(ZoneBase):
+    pass
+
+class ZoneResponse(ZoneBase):
+    id: int
+    scooters: List[ScooterResponse] = []
+    model_config = ConfigDict(from_attributes=True)

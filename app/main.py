@@ -33,6 +33,14 @@ def get_zones(db: Session = Depends(get_db)):
 def get_zones_id(db: Session = Depends(get_db), id: int = -1):
     return crud.get_zones_id(db=db, id=id)
 
+@app.post("/zones/", response_model=schemas.ZoneResponse)
+def add_new_zones(zone: schemas.ZoneCreate, db: Session = Depends(get_db)):
+    return crud.create_zone(db, zone)
+
+@app.delete("/zones/{id}")
+def delete_zone(db: Session = Depends(get_db), id: int = -1):
+    return crud.delete_zone(db, id)
+
 '''
     Patinetes
 '''
@@ -43,3 +51,11 @@ def get_scooters(db: Session = Depends(get_db)):
 @app.get("/scooters/{id}")
 def get_scooters_id(db: Session = Depends(get_db), id: int = -1):
     return crud.get_scooters_id(db=db, id=id)
+
+@app.post("/scooters/", response_model=schemas.ScooterResponse)
+def add_new_scooter(scooter: schemas.ScooterCreate, db: Session = Depends(get_db)):
+    return crud.create_scooter(db, scooter)
+
+@app.delete("/scooters/{id}")
+def delete_scooter(db: Session = Depends(get_db), id: int = -1):
+    return crud.delete_scooter(db, id)
