@@ -28,7 +28,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://scooteruser:scooterpassword@db:5432/scooterflow
     depends_on:
-      - db:
+      db:
         condition: service_healthy
 
 volumes:
