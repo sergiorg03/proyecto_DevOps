@@ -33,6 +33,10 @@ def get_zones_id(db: Session = Depends(get_db), id: int = -1):
 def add_new_zones(zone: schemas.ZoneCreate, db: Session = Depends(get_db)):
     return crud.create_zone(db, zone)
 
+@app.post("/zones/{id}/mantenimiento")
+def auto_maintenance(id: int, db: Session = Depends(get_db)):
+    return crud.auto_maintenance(db, id)
+
 @app.delete("/zones/{id}")
 def delete_zone(db: Session = Depends(get_db), id: int = -1):
     return crud.delete_zone(db, id)

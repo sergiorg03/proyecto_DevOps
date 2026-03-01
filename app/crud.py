@@ -78,10 +78,10 @@ def create_scooter(db: Session, scooter: schemas.ScooterCreate):
         raise HTTPException(status_code=404, detail="Zona no encontrada")
 
     if db_scooter.bateria < 0 or db_scooter.bateria > 100:
-        raise HTTPException(status_code=400, detail="La batería debe estar entre 0 y 100")
+        raise HTTPException(status_code=422, detail="La batería debe estar entre 0 y 100")
 
     if db_scooter.estado.lower() not in ESTADOS:
-        raise HTTPException(status_code=400, detail="El estado no es válido")
+        raise HTTPException(status_code=422, detail="El estado no es válido")
 
     try:
         db.add(db_scooter)
@@ -124,3 +124,24 @@ def delete_scooter(db: Session, id: int):
     db.delete(patinete)
     db.commit()
     return {"msg": "Patinete eliminado"}
+
+def auto_maintenance(db: Session, zona_id: int):
+    """
+    Pone en mantenimiento a todos los patinetes de una zona con batería < 15%.
+    """
+    # Verificamos si la zona existe
+    zona = db.query(models.Zone).filter(models.Zone.id == zona_id).first()
+    if not zona:
+        raise HTTPException(status_code=404, detail="Zona no encontrada")
+
+    # Buscamos los patinetes que cumplen la condición
+    patinetes = db.query(models.Scooter).filter(
+        models.Scooter.zona_id == zona_id,
+        models.Scooter.bateria < 15
+    ).all()
+
+    for p in patinetes:
+        p.estado = models.ScooterStatus.mantenimiento
+    
+    db.commit()
+    return {"msg": f"Se han puesto {len(patinetes)} patinetes en mantenimiento"}

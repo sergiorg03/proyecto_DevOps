@@ -27,6 +27,8 @@ class Scooter (Base):
     modelo = Column(String, nullable=False)
     bateria = Column(Integer, nullable=False, default=100)
     estado = Column(Enum(ScooterStatus), nullable=False, default=ScooterStatus.disponible)
+    # Nuevo campo
+    puntuacion_usuario = Column(Float, nullable=True, default=0.0)
 
     zona_id = Column(Integer, ForeignKey("zone.id", ondelete="CASCADE"))
     zona = relationship("Zone", back_populates="scooters")

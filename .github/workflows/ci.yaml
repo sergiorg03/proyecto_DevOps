@@ -12,8 +12,23 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: scooteruser
+          POSTGRES_PASSWORD: scooterpassword
+          POSTGRES_DB: scooterflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U scooteruser"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
     env:
-      DATABASE_URL: "sqlite:///./test.db"
+      DATABASE_URL: postgresql://scooteruser:scooterpassword@localhost:5432/scooterflow
 
     steps:
     - name: Checkout repository
@@ -28,6 +43,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U scooteruser; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
 
     - name: Run tests
       run: PYTHONPATH=. pytest

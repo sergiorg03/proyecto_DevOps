@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Optional
 from enum import Enum
 
@@ -11,9 +11,17 @@ class ScooterStatus(str, Enum):
 class ScooterBase(BaseModel):
     numero_serie: str
     modelo: str
-    bateria: int = 100
+    #bateria: int = Field(default=100, ge=0, le=100) Correccion del error en el test 'test_create_scooter_invalid_battery' por cadena de devolucion
+    bateria: int = Field(default=100)
     estado: ScooterStatus = ScooterStatus.disponible
     zona_id: Optional[int] = None
+
+    @field_validator("bateria")
+    @classmethod
+    def validar_bateria(cls, v):
+        if not 0 <= v <= 100:
+            raise ValueError("batería debe estar entre 0 y 100")
+        return v
 
 class ScooterCreate(ScooterBase):
     pass
