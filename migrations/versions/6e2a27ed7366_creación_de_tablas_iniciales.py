@@ -20,7 +20,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    op.drop_table('scooter')
+    op.drop_table('zone')
 
+def downgrade() -> None:
+    """Downgrade schema."""
     op.create_table(
         'zone',
         sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
@@ -52,9 +56,3 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id', name=op.f('scooter_pkey')),
         sa.UniqueConstraint('numero_serie', name=op.f('scooter_numero_serie_key'))
     )
-
-
-def downgrade() -> None:
-    """Downgrade schema."""
-    op.drop_table('scooter')
-    op.drop_table('zone')
