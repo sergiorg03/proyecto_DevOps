@@ -18,6 +18,16 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 def create():
+    if not op.get_context().dialect.has_table(op.get_bind(), 'zone'):
+        op.create_table(
+            'zone',
+            sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
+            sa.Column('nombre', sa.VARCHAR(), nullable=False),
+            sa.Column('codigo_postal', sa.INTEGER(), nullable=False),
+            sa.Column('limite_velocidad', sa.INTEGER(), nullable=False),
+            sa.PrimaryKeyConstraint('id', name=op.f('zone_pkey'))
+        )
+
     if not op.get_context().dialect.has_table(op.get_bind(), 'scooter'):
         op.create_table(
             'scooter',
@@ -40,16 +50,6 @@ def create():
             sa.ForeignKeyConstraint(['zona_id'], ['zone.id'], name=op.f('scooter_zona_id_fkey')),
             sa.PrimaryKeyConstraint('id', name=op.f('scooter_pkey')),
             sa.UniqueConstraint('numero_serie', name=op.f('scooter_numero_serie_key'))
-        )
-
-    if not op.get_context().dialect.has_table(op.get_bind(), 'zone'):
-        op.create_table(
-            'zone',
-            sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
-            sa.Column('nombre', sa.VARCHAR(), nullable=False),
-            sa.Column('codigo_postal', sa.INTEGER(), nullable=False),
-            sa.Column('limite_velocidad', sa.INTEGER(), nullable=False),
-            sa.PrimaryKeyConstraint('id', name=op.f('zone_pkey'))
         )
 
 def upgrade() -> None:
