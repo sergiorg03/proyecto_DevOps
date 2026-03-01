@@ -73,8 +73,8 @@ def test_create_scooter_invalid_battery(client: TestClient):
         "zona_id": 1
     }
     response = client.post("/scooters/", json=new_scooter)
-    assert response.status_code == 400
-    assert "batería debe estar entre 0 y 100" in response.json()["detail"]
+    assert response.status_code == 422
+    assert "batería debe estar entre 0 y 100" in response.json()["detail"][0]["msg"]
 
 def test_create_scooter_non_existent_zone(client: TestClient):
     new_scooter = {
@@ -135,13 +135,13 @@ def test_create_scooter_incorr(client: TestClient):
         "numero_serie": "STATUS-ERR",
         "modelo": "Test",
         "bateria": 50,
-        "estado": "volando",  # Estado no válido
+        "estado": "volando",  # Estado no valido
         "zona_id": 1
     }
     response = client.post("/scooters/", json=new_scooter)
     # Pydantic v2 validará el Enum antes de llegar al CRUD si usamos el esquema correctamente en main.py
     # En este caso, schemas.ScooterCreate usa ScooterStatus Enum.
-    assert response.status_code == 422 # Unprocessable Entity (Error de validación de FastAPI/Pydantic)
+    assert response.status_code == 422 # Error de validacion de FastAPI/Pydantic
 
 def test_delete_non_existent_zone(client: TestClient):
     response = client.delete("/zones/9999")
@@ -172,3 +172,42 @@ def test_create_scooter_duplicate_serial(client: TestClient):
     # Esto debería fallar por integridad en la BD (Unique constraint)
     # Dependiendo de como manejes el error en CRUD, aquí esperamos un error (500 o manejado)
     assert response.status_code >= 400
+
+def test_auto_maintenance(client: TestClient):
+    # Zona 1 ya tiene un patinete con 85% batería (conftest.py)
+    # Creamos un patinete con 10% de batería en Zona 1
+    scooter_low = {
+        "numero_serie": "LOW-BATT",
+        "modelo": "Test",
+        "bateria": 10,
+        "estado": "disponible",
+        "zona_id": 1
+    }
+    client.post("/scooters/", json=scooter_low)
+    
+    # Ejecutamos mantenimiento
+    response = client.post("/zones/1/mantenimiento")
+    assert response.status_code == 200
+    assert "Se han puesto 1 patinetes en mantenimiento" in response.json()["msg"]
+    
+    # Verificamos que el estado cambió
+    resp_list = client.get("/scooters/")
+    scooters = resp_list.json()
+    found = False
+    for s in scooters:
+        if s["numero_serie"] == "LOW-BATT":
+            assert s["estado"] == "mantenimiento"
+            found = True
+    assert found
+
+def test_create_scooter_pydantic_battery_error(client: TestClient):
+    # Tarea 4. Error 422 si pongo 150%
+    new_scooter = {
+        "numero_serie": "BATT-OVER",
+        "modelo": "Test",
+        "bateria": 150,
+        "estado": "disponible",
+        "zona_id": 1
+    }
+    response = client.post("/scooters/", json=new_scooter)
+    assert response.status_code == 422 # Error de validacion de Pydantic
