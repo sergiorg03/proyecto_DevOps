@@ -3,7 +3,7 @@
 ### 1. Iniciar todo el sistema
 Construye la imagen de la app y levanta la base de datos y la API juntas:
 ```powershell
-docker-compose up --build
+docker-compose up --build -d
 ```
 *   **API**: `http://localhost:8000`
 *   **Swagger**: `http://localhost:8000/docs`

@@ -7,6 +7,11 @@ from . import schemas, crud
 from .deps import get_db
 from .database import Base, engine
 
+'''
+    TODO:
+        - Crear Endpoints update
+'''
+
 # Las tablas se gestionarán a través de migraciones con Alembic.
 
 app = FastAPI(title="ScooterFlow API")

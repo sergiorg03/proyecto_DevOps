@@ -47,7 +47,7 @@ cd proyecto_DevOps
 ### Paso 2: Levantar todos los servicios con un solo comando
 
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
 
 Este comando realiza automáticamente lo siguiente:
