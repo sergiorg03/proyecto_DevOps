@@ -54,9 +54,73 @@ Muestra una lista de todas las migraciones creadas, su identificador único y si
 
 1.  **Modifica** tus clases en `app/models.py`.
 2.  **Genera** la migración: `alembic revision --autogenerate -m "añadir columna X"`.
-3.  **Revisa** el archivo generado en `migrations/versions/`.
+3.  **Revisa** el archivo generado en `alembic/versions/`.
 4.  **Aplica** el cambio: `alembic upgrade head`.
+
+---
+
+## 🐳 Uso con Docker
+
+Cuando la aplicación se ejecuta dentro de **Docker**, los comandos de Alembic deben lanzarse **dentro del contenedor** de la API usando `docker-compose exec`. Todos los comandos de esta sección se ejecutan desde la raíz del proyecto en tu terminal local.
+
+### 1. Instalar dependencias (si fuera necesario)
+Si necesitas instalar algún paquete adicional dentro del contenedor en caliente (sin reconstruir la imagen):
+```powershell
+docker-compose exec api pip install psycopg2-binary
+docker-compose exec api pip install alembic
+docker-compose exec api pip install sqlalchemy
+```
+> [!NOTE]
+> Estos paquetes ya están incluidos en `requirements.txt` y se instalan automáticamente al construir la imagen con `docker-compose up --build`. Solo usa estos comandos si necesitas añadir algo puntualmente sin reconstruir.
+
+### 2. Generar una nueva migración
+Detecta los cambios en `app/models.py` y genera el script de migración:
+```powershell
+docker-compose exec api alembic revision --autogenerate -m "Descripción del cambio"
+```
+**Ejemplo real:**
+```powershell
+docker-compose exec api alembic revision --autogenerate -m "Creacion de tablas iniciales"
+docker-compose exec api alembic revision --autogenerate -m "Nuevo campo en tabla scooters"
+```
+
+### 3. Aplicar migraciones pendientes
+Ejecuta todas las migraciones pendientes hasta la versión más reciente:
+```powershell
+docker-compose exec api alembic upgrade head
+```
+
+### 4. Deshacer la última migración
+Revierte la última migración aplicada:
+```powershell
+docker-compose exec api alembic downgrade -1
+```
+
+### 5. Ver el historial de migraciones
+Muestra todas las migraciones creadas y su estado:
+```powershell
+docker-compose exec api alembic history --verbose
+```
+
+### 6. Ver la versión actual
+Comprueba en qué migración se encuentra la base de datos:
+```powershell
+docker-compose exec api alembic current
+```
+
+---
+
+## 🔄 Flujo de Trabajo Completo con Docker
+
+1.  **Levanta** los contenedores: `docker-compose up --build -d`
+2.  **Modifica** tus modelos en `app/models.py`.
+3.  **Genera** la migración: `docker-compose exec api alembic revision --autogenerate -m "descripción"`.
+4.  **Revisa** el archivo generado en `alembic/versions/`.
+5.  **Aplica** el cambio: `docker-compose exec api alembic upgrade head`.
 
 ---
 > [!TIP]
 > **Importante**: Nunca borres manualmente la tabla `alembic_version` de tu base de datos, ya que es donde Alembic guarda en qué punto del historial se encuentra tu sistema.
+
+> [!WARNING]
+> Recuerda que el servicio se llama **`api`** (no `app`) (Este nombre se obtiene del archivo docker-compose.yaml cuando creamos el servicio *api*:build). Si usas `docker-compose exec app ...` obtendrás el error `service "app" is not running`.

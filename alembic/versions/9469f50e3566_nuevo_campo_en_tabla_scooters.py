@@ -1,8 +1,8 @@
-"""Nuevo campo en la tabla scooters
+"""Nuevo campo en tabla scooters
 
-Revision ID: 2a0f605a0dbf
-Revises: 922a8fcfee8b
-Create Date: 2026-03-02 15:29:13.027572
+Revision ID: 9469f50e3566
+Revises: 739c68f31939
+Create Date: 2026-03-04 19:12:20.946380
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '2a0f605a0dbf'
-down_revision: Union[str, Sequence[str], None] = '922a8fcfee8b'
+revision: str = '9469f50e3566'
+down_revision: Union[str, Sequence[str], None] = '739c68f31939'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
