@@ -40,7 +40,7 @@ proyecto_DevOps/
 ### Paso 1: Clonar el repositorio
 
 ```bash
-git clone <https://github.com/sergiorg03/proyecto_DevOps.git>
+git clone https://github.com/sergiorg03/proyecto_DevOps.git
 cd proyecto_DevOps
 ```
 
@@ -62,8 +62,21 @@ Este comando realiza automáticamente lo siguiente:
 
 En una terminal aparte, con los contenedores activos:
 
+Inicializamos la migraciones con alembic
 ```bash
-docker-compose exec app alembic upgrade head
+docker-compose exec api alembic init alembic 
+```
+
+Creamos los cambios con autogenerate. La primera vez se crearan las tablas.
+
+```bash
+docker-compose exec api alembic revision --autogenerate -m "Creacion de las tablas iniciales"
+```
+
+Aplicamos los cambios
+
+```bash
+docker-compose exec api alembic upgrade head
 ```
 
 Esto crea las tablas `zone` y `scooter` en la base de datos PostgreSQL.
@@ -71,7 +84,7 @@ Esto crea las tablas `zone` y `scooter` en la base de datos PostgreSQL.
 ### Paso 4: (Opcional) Poblar la base de datos con datos iniciales
 
 ```bash
-docker-compose exec app python seed.py
+docker-compose exec api python seed.py
 ```
 
 ---
@@ -94,6 +107,7 @@ docker-compose exec app python seed.py
 | `GET` | `/zones/` | Listar todas las zonas |
 | `GET` | `/zones/{id}` | Obtener una zona por ID |
 | `POST` | `/zones/` | Crear una nueva zona |
+| `PUT` | `/zones/{id}` | Actualizar una zona (parcial o total) |
 | `DELETE` | `/zones/{id}` | Eliminar una zona (borra sus patinetes en cascada) |
 | `POST` | `/zones/{id}/mantenimiento` | Poner en mantenimiento patinetes con batería < 15% |
 
@@ -104,30 +118,37 @@ docker-compose exec app python seed.py
 | `GET` | `/scooters/` | Listar todos los patinetes |
 | `GET` | `/scooters/{id}` | Obtener un patinete por ID |
 | `POST` | `/scooters/` | Crear un nuevo patinete |
+| `PUT` | `/scooters/{id}` | Actualizar un patinete (parcial o total) |
 | `DELETE` | `/scooters/{id}` | Eliminar un patinete |
 
 ---
 
 ## 🧪 Ejecutar los Tests
 
-Los tests utilizan una base de datos SQLite en memoria, por lo que **no requieren Docker**.
+Los tests utilizan una base de datos PostgreSQL en Docker (localmente requieren que el contenedor `db` esté activo).
 
 ```bash
 # Activar el entorno virtual
 .venv\Scripts\activate        # Windows
 source .venv/bin/activate     # Linux/Mac
 
-# Ejecutar todos los tests
-pytest tests/test_main.py
+# Ejecutar todos los tests localmente
+python -m pytest tests/test_main.py
 
 # Ejecutar con detalle
-pytest tests/test_main.py -v
+python -m pytest tests/test_main.py -v
+
+# Ejecutar los tests en Docker
+docker-compose exec api pytest tests/
+
+# Ejecutar los tests en Docker con más detalle
+docker-compose exec api pytest tests/ -v
 ```
 
-La suite cubre **22 tests** entre casos positivos y negativos:
-- CRUD de zonas y patinetes
+La suite cubre **33 tests** entre casos positivos y negativos:
+- CRUD completo de zonas y patinetes (incluyendo actualizaciones)
 - Borrado en cascada
-- Validaciones (batería, estado, campos obligatorios)
+- Validaciones (batería, estado, puntuación, campos obligatorios)
 - Lógica de mantenimiento automático
 
 ---
@@ -169,14 +190,8 @@ docker-compose up -d db
 
 ```bash
 # Generar una nueva migración tras modificar models.py
-alembic revision --autogenerate -m "descripción del cambio"
+docker-compose exec api alembic revision --autogenerate -m "descripción del cambio"
 
 # Aplicar todas las migraciones pendientes
-alembic upgrade head
-
-# Revertir la última migración
-alembic downgrade -1
-
-# Ver el historial de migraciones
-alembic history --verbose
+docker-compose exec api alembic upgrade head
 ```
