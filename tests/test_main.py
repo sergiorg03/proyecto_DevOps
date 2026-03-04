@@ -89,6 +89,30 @@ def test_create_scooter_non_existent_zone(client: TestClient):
     assert response.status_code == 404
     assert response.json()["detail"] == "Zona no encontrada"
 
+def test_update_zone_corr(client: TestClient):
+    """Actualización completa de una zona."""
+    zone_id = pytest.seeded_zone_id
+    update_data = {"nombre": "Zona Actualizada", "codigo_postal": 28002, "limite_velocidad": 30}
+    response = client.put(f"/zones/{zone_id}", json=update_data)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["nombre"] == "Zona Actualizada"
+    assert data["codigo_postal"] == 28002
+    assert data["limite_velocidad"] == 30
+
+def test_update_zone_not_found_incorr(client: TestClient):
+    """Intentar actualizar una zona que no existe."""
+    response = client.put("/zones/999999", json={"nombre": "No Existe"})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Zona no encontrada"
+
+def test_update_zone_velocidad_incorr(client: TestClient):
+    """Intentar actualizar con límite de velocidad negativo."""
+    zone_id = pytest.seeded_zone_id
+    response = client.put(f"/zones/{zone_id}", json={"limite_velocidad": -5})
+    assert response.status_code == 422
+    assert "límite de velocidad no puede ser negativo" in response.json()["detail"][0]["msg"]
+
 '''
     TEST SCOOTERS
 '''
@@ -175,27 +199,115 @@ def test_create_scooter_duplicate_serial(client: TestClient):
 def test_auto_maintenance(client: TestClient):
     zone_id = pytest.seeded_zone_id
 
-    # Creamos un patinete con 10% de batería en la zona seeded
-    scooter_low = {
-        "numero_serie": "LOW-BATT",
-        "modelo": "Test",
-        "bateria": 10,
-        "estado": "disponible",
-        "zona_id": zone_id
-    }
-    client.post("/scooters/", json=scooter_low)
+    # Creamos varios patinetes con batería baja (<15%) en la zona
+    scooters_baja_bateria = [
+        {"numero_serie": "LOW-BATT-1", "modelo": "Test", "bateria": 10, "estado": "disponible", "zona_id": zone_id},
+        {"numero_serie": "LOW-BATT-2", "modelo": "Test", "bateria": 5, "estado": "disponible", "zona_id": zone_id},
+        {"numero_serie": "LOW-BATT-3", "modelo": "Test", "bateria": 0, "estado": "en_uso", "zona_id": zone_id},
+    ]
+    for s in scooters_baja_bateria:
+        client.post("/scooters/", json=s)
+
+    # Creamos un patinete con batería suficiente (NO debe cambiar)
+    scooter_ok = {"numero_serie": "HIGH-BATT", "modelo": "Test", "bateria": 80, "estado": "disponible", "zona_id": zone_id}
+    client.post("/scooters/", json=scooter_ok)
 
     # Ejecutamos mantenimiento
     response = client.post(f"/zones/{zone_id}/mantenimiento")
     assert response.status_code == 200
-    assert "Se han puesto 1 patinetes en mantenimiento" in response.json()["msg"]
+    assert "Se han puesto 3 patinetes en mantenimiento" in response.json()["msg"]
 
-    # Verificamos que el estado cambió
+    # Verificamos que TODOS los de batería baja están en mantenimiento
     resp_list = client.get("/scooters/")
     scooters = resp_list.json()
-    found = False
+
+    series_baja = {"LOW-BATT-1", "LOW-BATT-2", "LOW-BATT-3"}
     for s in scooters:
-        if s["numero_serie"] == "LOW-BATT":
-            assert s["estado"] == "mantenimiento"
-            found = True
-    assert found
+        if s["numero_serie"] in series_baja:
+            assert s["estado"] == "mantenimiento", f"{s['numero_serie']} debería estar en mantenimiento"
+
+    # Verificamos que el de batería alta NO cambió
+    for s in scooters:
+        if s["numero_serie"] == "HIGH-BATT":
+            assert s["estado"] == "disponible", "HIGH-BATT no debería estar en mantenimiento"
+
+def test_update_scooter(client: TestClient):
+    """Actualización completa de un patinete."""
+    scooter_id = pytest.seeded_scooter_id
+    update_data = {
+        "numero_serie": "S001-UPD",
+        "modelo": "Xiaomi Pro 2",
+        "bateria": 95,
+        "estado": "en_uso",
+        "puntuacion_usuario": 4.5
+    }
+    response = client.put(f"/scooters/{scooter_id}", json=update_data)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["numero_serie"] == "S001-UPD"
+    assert data["modelo"] == "Xiaomi Pro 2"
+    assert data["bateria"] == 95
+    assert data["estado"] == "en_uso"
+    assert data["puntuacion_usuario"] == 4.5
+
+def test_update_scooter_partial(client: TestClient):
+    """Actualización parcial: solo la batería."""
+    scooter_id = pytest.seeded_scooter_id
+    response = client.put(f"/scooters/{scooter_id}", json={"bateria": 50})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["bateria"] == 50
+    # Los demás campos deben mantener sus valores originales
+    assert data["numero_serie"] == "S001"
+    assert data["modelo"] == "Xiaomi M365"
+
+def test_update_scooter_not_found(client: TestClient):
+    """Intentar actualizar un patinete que no existe."""
+    response = client.put("/scooters/999999", json={"bateria": 50})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Patinete no encontrado"
+
+def test_update_scooter_invalid_battery(client: TestClient):
+    """Intentar actualizar con batería fuera de rango."""
+    scooter_id = pytest.seeded_scooter_id
+    response = client.put(f"/scooters/{scooter_id}", json={"bateria": 150})
+    assert response.status_code == 422
+    assert "batería debe estar entre 0 y 100" in response.json()["detail"][0]["msg"]
+
+def test_update_scooter_invalid_rating(client: TestClient):
+    """Intentar actualizar con puntuación fuera de rango (0-5)."""
+    scooter_id = pytest.seeded_scooter_id
+    response = client.put(f"/scooters/{scooter_id}", json={"puntuacion_usuario": 7.0})
+    assert response.status_code == 422
+    assert "puntuación debe estar entre 0 y 5" in response.json()["detail"][0]["msg"]
+
+def test_update_scooter_duplicate_serial(client: TestClient):
+    """Intentar actualizar un patinete con un número de serie que ya existe."""
+    # Crear segundo scooter
+    new_scooter = {
+        "numero_serie": "S002",
+        "modelo": "Segway",
+        "bateria": 70,
+        "estado": "disponible",
+        "zona_id": pytest.seeded_zone_id
+    }
+    client.post("/scooters/", json=new_scooter)
+
+    # Intentar cambiar el número de serie del seeded scooter al que ya existe
+    scooter_id = pytest.seeded_scooter_id
+    response = client.put(f"/scooters/{scooter_id}", json={"numero_serie": "S002"})
+    assert response.status_code == 400
+    assert "número de serie ya existe" in response.json()["detail"]
+
+def test_update_scooter_invalid_status(client: TestClient):
+    """Intentar actualizar con un estado que no existe."""
+    scooter_id = pytest.seeded_scooter_id
+    response = client.put(f"/scooters/{scooter_id}", json={"estado": "volando"})
+    assert response.status_code == 422  # Pydantic rechaza el enum inválido
+
+def test_update_scooter_non_existent_zone(client: TestClient):
+    """Intentar mover un patinete a una zona que no existe."""
+    scooter_id = pytest.seeded_scooter_id
+    response = client.put(f"/scooters/{scooter_id}", json={"zona_id": 999999})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Zona no encontrada"

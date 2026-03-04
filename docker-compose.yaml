@@ -27,7 +27,7 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/app/app
-      - ./test:/app/tests
+      - ./tests:/app/tests
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
     environment:

@@ -58,6 +58,28 @@ def delete_zone(db: Session, id: int):
     db.commit()
     return {"msg": "Zona eliminada"}
 
+def update_zone(db: Session, id: int, zone_data: schemas.ZoneUpdate):
+    """
+    Función que actualiza una zona existente en la base de datos.
+    Solo modifica los campos que se envían en la petición.
+    """
+    zona = db.query(models.Zone).filter(models.Zone.id == id).first()
+
+    if not zona:
+        raise HTTPException(status_code=404, detail="Zona no encontrada")
+
+    datos = zone_data.model_dump(exclude_unset=True)
+
+    if "limite_velocidad" in datos and datos["limite_velocidad"] is not None and datos["limite_velocidad"] < 0:
+        raise HTTPException(status_code=400, detail="El límite de velocidad no puede ser negativo")
+
+    for campo, valor in datos.items():
+        setattr(zona, campo, valor)
+
+    db.commit()
+    db.refresh(zona)
+    return zona
+
 '''
     Scooters
 '''
@@ -118,6 +140,40 @@ def delete_scooter(db: Session, id: int):
     db.delete(patinete)
     db.commit()
     return {"msg": "Patinete eliminado"}
+
+def update_scooter(db: Session, id: int, scooter_data: schemas.ScooterUpdate):
+    """
+    Función que actualiza un patinete existente en la base de datos.
+    Solo modifica los campos que se envían en la petición.
+    """
+    patinete = db.query(models.Scooter).filter(models.Scooter.id == id).first()
+
+    if not patinete:
+        raise HTTPException(status_code=404, detail="Patinete no encontrado")
+
+    datos = scooter_data.model_dump(exclude_unset=True)
+
+    # Validar zona si se envía
+    if "zona_id" in datos and datos["zona_id"] is not None:
+        zona = db.query(models.Zone).filter(models.Zone.id == datos["zona_id"]).first()
+        if not zona:
+            raise HTTPException(status_code=404, detail="Zona no encontrada")
+
+    # Validar puntuacion_usuario si se envía
+    if "puntuacion_usuario" in datos and datos["puntuacion_usuario"] is not None:
+        if datos["puntuacion_usuario"] < 0 or datos["puntuacion_usuario"] > 5:
+            raise HTTPException(status_code=400, detail="La puntuación debe estar entre 0 y 5")
+
+    try:
+        for campo, valor in datos.items():
+            setattr(patinete, campo, valor)
+        db.commit()
+        db.refresh(patinete)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Error al actualizar: el número de serie ya existe")
+
+    return patinete
 
 def auto_maintenance(db: Session, zona_id: int):
     """

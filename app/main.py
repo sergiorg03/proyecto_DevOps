@@ -7,20 +7,13 @@ from . import schemas, crud
 from .deps import get_db
 from .database import Base, engine
 
-'''
-    TODO:
-        - Crear Endpoints update
-'''
-
 # Las tablas se gestionarán a través de migraciones con Alembic.
-
 app = FastAPI(title="ScooterFlow API")
 
 # Mensaje de root
 @app.get("/")
 def root():
     return {"msg": "API funcionando"}
-
 
 '''
     Zonas
@@ -42,6 +35,10 @@ def add_new_zones(zone: schemas.ZoneCreate, db: Session = Depends(get_db)):
 def auto_maintenance(id: int, db: Session = Depends(get_db)):
     return crud.auto_maintenance(db, id)
 
+@app.put("/zones/{id}", response_model=schemas.ZoneResponse)
+def update_zone(id: int, zone: schemas.ZoneUpdate, db: Session = Depends(get_db)):
+    return crud.update_zone(db, id, zone)
+
 @app.delete("/zones/{id}")
 def delete_zone(db: Session = Depends(get_db), id: int = -1):
     return crud.delete_zone(db, id)
@@ -61,6 +58,11 @@ def get_scooters_id(db: Session = Depends(get_db), id: int = -1):
 def add_new_scooter(scooter: schemas.ScooterCreate, db: Session = Depends(get_db)):
     return crud.create_scooter(db, scooter)
 
+@app.put("/scooters/{id}", response_model=schemas.ScooterResponse)
+def update_scooter(id: int, scooter: schemas.ScooterUpdate, db: Session = Depends(get_db)):
+    return crud.update_scooter(db, id, scooter)
+
 @app.delete("/scooters/{id}")
 def delete_scooter(db: Session = Depends(get_db), id: int = -1):
     return crud.delete_scooter(db, id)
+
