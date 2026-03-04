@@ -132,6 +132,9 @@ Los tests utilizan una base de datos PostgreSQL en Docker (localmente requieren 
 .venv\Scripts\activate        # Windows
 source .venv/bin/activate     # Linux/Mac
 
+# Instalamos las librerias necesarias del proyecto
+pip install -r requirements.txt
+
 # Ejecutar todos los tests localmente
 python -m pytest tests/test_main.py
 
