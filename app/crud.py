@@ -3,8 +3,14 @@ from sqlalchemy.orm import Session
 # from app import models
 from . import models, schemas
 from datetime import date
+from enum import Enum
 
-ESTADOS = ["disponible", "en_uso", "mantenimiento", "sin_bateria"]
+# Clase para los estados de los patinetes
+class ScooterStatus(str, Enum):
+    disponible = "disponible"
+    en_uso = "en_uso"
+    mantenimiento = "mantenimiento"
+    sin_bateria = "sin_bateria"
 
 '''
     Zones
@@ -42,6 +48,9 @@ def create_zone(db: Session, zone: schemas.ZoneCreate):
 
     if db_zone.limite_velocidad < 0:
         raise HTTPException(status_code=400, detail="El límite de velocidad no puede ser negativo")
+
+    if db_zone.codigo_postal < 0:
+        raise HTTPException(status_code=400, detail="El código postal no puede ser negativo")
     
     db.add(db_zone)
     db.commit()
@@ -95,9 +104,6 @@ def create_scooter(db: Session, scooter: schemas.ScooterCreate):
 
     if db_scooter.bateria < 0 or db_scooter.bateria > 100:
         raise HTTPException(status_code=422, detail="La batería debe estar entre 0 y 100")
-
-    if db_scooter.estado.lower() not in ESTADOS:
-        raise HTTPException(status_code=422, detail="El estado no es válido")
 
     try:
         db.add(db_scooter)

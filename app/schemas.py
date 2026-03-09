@@ -20,11 +20,21 @@ class ScooterBase(BaseModel):
     @classmethod
     def validar_bateria(cls, v):
         if not 0 <= v <= 100:
-            raise ValueError("batería debe estar entre 0 y 100")
+            raise ValueError("La bateria debe estar entre 0 y 100")
         return v
 
 class ScooterCreate(ScooterBase):
-    pass
+    numero_serie: str
+    bateria: int
+    zona_id: int
+    estado: ScooterStatus
+
+    @field_validator("estado", mode="before")
+    @classmethod
+    def normalize_estado(cls, v):
+        if isinstance(v, str):
+            return v.lower()
+        return v
 
 class ScooterUpdate(BaseModel):
     numero_serie: Optional[str] = None
@@ -38,14 +48,21 @@ class ScooterUpdate(BaseModel):
     @classmethod
     def validar_bateria(cls, v):
         if v is not None and not 0 <= v <= 100:
-            raise ValueError("batería debe estar entre 0 y 100")
+            raise ValueError("La bateria debe estar entre 0 y 100")
         return v
 
     @field_validator("puntuacion_usuario")
     @classmethod
     def validar_puntuacion(cls, v):
         if v is not None and not 0 <= v <= 5:
-            raise ValueError("puntuación debe estar entre 0 y 5")
+            raise ValueError("puntuacion debe estar entre 0 y 5")
+        return v
+
+    @field_validator("estado", mode="before")
+    @classmethod
+    def normalize_estado(cls, v):
+        if isinstance(v, str):
+            return v.lower()
         return v
 
 class ScooterResponse(ScooterBase):
@@ -70,7 +87,16 @@ class ZoneUpdate(BaseModel):
     @classmethod
     def validar_limite_velocidad(cls, v):
         if v is not None and v < 0:
-            raise ValueError("El límite de velocidad no puede ser negativo")
+            raise ValueError("El limite de velocidad no puede ser negativo")
+        return v
+
+    @field_validator("codigo_postal")
+    @classmethod
+    def validar_codigo_postal(cls, v):
+        if v is None:
+            raise ValueError("Debe introducir un valor para el codigo postal valido")
+        elif v < 0:
+            raise ValueError("El codigo postal no puede ser negativo")
         return v
 
 class ZoneResponse(ZoneBase):
