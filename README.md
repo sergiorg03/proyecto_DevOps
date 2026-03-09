@@ -44,7 +44,26 @@ git clone https://github.com/sergiorg03/proyecto_DevOps.git
 cd proyecto_DevOps
 ```
 
-### Paso 2: Levantar todos los servicios con un solo comando
+### Paso 2: Instalar las librerias necesarias
+
+1. Creamos un entorno virtual.
+```bash
+python -m venv .venv          # Windows
+python3 -m venv .venv         # Linux/Mac
+```
+
+2. Activamos el entorno virtual.
+```bash
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # Linux/Mac
+```
+
+3. Instalamos las librerias necesarias.
+```bash
+pip install -r requirements.txt
+```
+
+### Paso 3: Levantar todos los servicios con un solo comando
 
 ```bash
 docker-compose up --build -d
@@ -60,31 +79,19 @@ Este comando realiza automáticamente lo siguiente:
 
 ### Paso 3: Aplicar las migraciones de Alembic
 
-En una terminal aparte, con los contenedores activos:
+En una terminal, con los contenedores activos:
 
-Inicializamos la migraciones con alembic
-```bash
-docker-compose exec api alembic init alembic 
-```
-
-Creamos los cambios con autogenerate. La primera vez se crearan las tablas.
-
-```bash
-docker-compose exec api alembic revision --autogenerate -m "Creacion de las tablas iniciales"
-```
-
-Aplicamos los cambios
-
+Ejecutamos las migraciones con alembic
 ```bash
 docker-compose exec api alembic upgrade head
 ```
 
-Esto crea las tablas `zone` y `scooter` en la base de datos PostgreSQL.
+Esto nos creará las tablas `zone` y `scooter` en la base de datos PostgreSQL.
 
-### Paso 4: (Opcional) Poblar la base de datos con datos iniciales
+### Paso 4: Poblar la base de datos con datos iniciales
 
 ```bash
-docker-compose exec api python seed.py
+python ./seed.py
 ```
 
 ---
@@ -128,13 +135,6 @@ docker-compose exec api python seed.py
 Los tests utilizan una base de datos PostgreSQL en Docker (localmente requieren que el contenedor `db` esté activo).
 
 ```bash
-# Activar el entorno virtual
-.venv\Scripts\activate        # Windows
-source .venv/bin/activate     # Linux/Mac
-
-# Instalamos las librerias necesarias del proyecto
-pip install -r requirements.txt
-
 # Ejecutar todos los tests localmente
 python -m pytest tests/test_main.py
 
@@ -148,11 +148,12 @@ docker-compose exec api pytest tests/
 docker-compose exec api pytest tests/ -v
 ```
 
-La suite cubre **33 tests** entre casos positivos y negativos:
-- CRUD completo de zonas y patinetes (incluyendo actualizaciones)
-- Borrado en cascada
-- Validaciones (batería, estado, puntuación, campos obligatorios)
-- Lógica de mantenimiento automático
+La suite cubre **6 tests** que incluyen:
+- Verificación del estado de la API (endpoint raíz)
+- Creación de zonas
+- Lógica de mantenimiento automático de patinetes (batería < 15%)
+- Creación y borrado de patinetes
+- Validación de rangos de batería (casos positivos y negativos)
 
 ---
 
@@ -192,6 +193,10 @@ docker-compose up -d db
 ## ⚗️ Gestión de Migraciones (Alembic)
 
 ```bash
+# Realiza la inicializacion del directorio de migraciones 'migrations' y los archivos base 
+# que gestionan las migraciones realizadas a la base de datos dentro del contendor api alojado en Docker 
+docker-compose exec api alembic init migrations
+
 # Generar una nueva migración tras modificar models.py
 docker-compose exec api alembic revision --autogenerate -m "descripción del cambio"
 
