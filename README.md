@@ -1,4 +1,4 @@
-# 🛴 ScooterFlow API
+# ScooterFlow API
 
 API REST para la gestión de una flota de patinetes eléctricos urbanos. Desarrollada con **FastAPI**, **PostgreSQL** y desplegada con **Docker**.
 
