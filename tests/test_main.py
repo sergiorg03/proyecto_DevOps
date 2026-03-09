@@ -20,20 +20,35 @@ def test_create_zone(client: TestClient):
     assert data["nombre"] == "Test Zone"
     assert "id" in data
 
-def test_create_scooter_invalid_battery(client: TestClient):
+def test_zone_mantenimiento(client: TestClient):
     '''
-        Test para la creacion de scooters con bateria incorrecta
+        Test para el mantenimiento automatico de zonas
     '''
+    zone_id = pytest.seeded_zone_id
+    
+    # Creamos un scooter con batería baja (< 15%) para que el mantenimiento lo afecte
     new_scooter = {
-        "numero_serie": "BATT-ERR",
+        "numero_serie": "chami",
         "modelo": "Test",
-        "bateria": 150,
+        "bateria": 10,
         "estado": "disponible",
-        "zona_id": pytest.seeded_zone_id
+        "zona_id": zone_id
     }
-    response = client.post("/scooters/", json=new_scooter)
-    assert response.status_code == 422
-    assert "bateria debe estar entre 0 y 100" in response.json()["detail"][0]["msg"].lower()
+    client.post("/scooters/", json=new_scooter)
+
+    # Llamada a mantenimiento
+    response = client.post(f"/zones/{zone_id}/mantenimiento")
+    assert response.status_code == 200
+    
+    # Verificar que los scooters de la zona con batería < 15 estén en mantenimiento
+    scooters = client.get("/scooters/").json()
+    for s in scooters:
+        if s["zona_id"] == zone_id:
+            if s["bateria"] < 15:
+                assert s["estado"] == "mantenimiento"
+            else:
+                # El scooter original tiene 85%, no debería estar en mantenimiento
+                assert s["estado"] != "mantenimiento"
 
 '''
     TEST SCOOTERS
@@ -69,8 +84,7 @@ def test_delete_scooter(client: TestClient):
 
 def test_scooter_battery_validation(client: TestClient):
     """
-    Verifica que la creación de un patinete falla si la batería
-    es menor que 0 o mayor que 100.
+        Comprobacion de valores de bateria en los rangos correctos
     """
 
     # Batería demasiado alta
@@ -83,7 +97,7 @@ def test_scooter_battery_validation(client: TestClient):
     }
     response_high = client.post("/scooters/", json=scooter_high)
     assert response_high.status_code == 422
-    assert "batería" in str(response_high.json()["detail"])
+    assert "bateria" in str(response_high.json()["detail"])
 
     # Batería negativa
     scooter_low = {
@@ -95,7 +109,7 @@ def test_scooter_battery_validation(client: TestClient):
     }
     response_low = client.post("/scooters/", json=scooter_low)
     assert response_low.status_code == 422
-    assert "batería" in str(response_low.json()["detail"])
+    assert "bateria" in str(response_low.json()["detail"])
 
     # Batería válida
     scooter_ok = {
