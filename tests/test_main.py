@@ -33,7 +33,7 @@ def test_create_scooter_invalid_battery(client: TestClient):
     }
     response = client.post("/scooters/", json=new_scooter)
     assert response.status_code == 422
-    assert "batería debe estar entre 0 y 100" in response.json()["detail"][0]["msg"]
+    assert "bateria debe estar entre 0 y 100" in response.json()["detail"][0]["msg"].lower()
 
 '''
     TEST SCOOTERS
