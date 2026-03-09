@@ -4,7 +4,7 @@ API REST para la gestión de una flota de patinetes eléctricos urbanos. Desarro
 
 ---
 
-## 🧱 Arquitectura del Proyecto
+## Arquitectura del Proyecto
 
 ```
 proyecto_DevOps/
@@ -31,7 +31,7 @@ proyecto_DevOps/
 
 ---
 
-## 🚀 Levantar el Proyecto (con Docker)
+## Levantar el Proyecto (con Docker)
 
 ### Prerrequisitos
 
@@ -96,7 +96,7 @@ python ./seed.py
 
 ---
 
-## 🌐 Acceder a la API
+## Acceder a la API
 
 | Recurso | URL |
 |---|---|
@@ -105,7 +105,7 @@ python ./seed.py
 
 ---
 
-## 📡 Endpoints Disponibles
+## Endpoints Disponibles
 
 ### Zonas (`/zones/`)
 
@@ -130,7 +130,7 @@ python ./seed.py
 
 ---
 
-## 🧪 Ejecutar los Tests
+## Ejecutar los Tests
 
 Los tests utilizan una base de datos PostgreSQL en Docker (localmente requieren que el contenedor `db` esté activo).
 
@@ -157,7 +157,7 @@ La suite cubre **6 tests** que incluyen:
 
 ---
 
-## 🤖 CI/CD con GitHub Actions
+## CI/CD con GitHub Actions
 
 El pipeline se activa automáticamente en cada `push` o `pull_request` a la rama `main`:
 
@@ -169,7 +169,7 @@ El pipeline se activa automáticamente en cada `push` o `pull_request` a la rama
 
 ---
 
-## 🐳 Comandos Docker Útiles
+## Comandos Docker Útiles
 
 ```bash
 # Levantar en segundo plano (modo detached)
@@ -190,7 +190,7 @@ docker-compose up -d db
 
 ---
 
-## ⚗️ Gestión de Migraciones (Alembic)
+## Gestión de Migraciones (Alembic)
 
 ```bash
 # Realiza la inicializacion del directorio de migraciones 'migrations' y los archivos base 
