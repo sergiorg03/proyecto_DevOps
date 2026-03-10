@@ -44,7 +44,7 @@ git clone https://github.com/sergiorg03/proyecto_DevOps.git
 cd proyecto_DevOps
 ```
 
-### Paso 2: Instalar las librerias necesarias
+### Paso 2: Instalar las librerias necesarias y configuración de las variables de entorno
 
 1. Creamos un entorno virtual.
 ```bash
@@ -61,6 +61,15 @@ source .venv/bin/activate     # Linux/Mac
 3. Instalamos las librerias necesarias.
 ```bash
 pip install -r requirements.txt
+```
+
+4. Creamos un archivo `.env` en la raiz del proyecto (./proyecto_Dev_Ops/) con el siguiente contenido:
+
+```bash
+DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/NOMBRE_BD"
+POSTGRES_DB=NOMBRE_BD
+POSTGRES_USER=USUARIO
+POSTGRES_PASSWORD=CONTRASEÑA
 ```
 
 ### Paso 3: Levantar todos los servicios con un solo comando
